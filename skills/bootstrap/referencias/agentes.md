@@ -183,6 +183,10 @@ O prompt deve conter:
 - **OWASP Top 10 para aplicações agênticas/LLM** quando houver código de agentes: prompt injection, uso indevido de tools, abuso de privilégio, exfiltração de dados, autonomia excessiva.
 - Checklist de segredos.
 - **Saída por severidade:** 🔴 Crítico → 🟠 Alto → 🟡 Médio → 🔵 Baixo → ✅ Pontos positivos → 🔧 Recomendações.
+- **Escalonamento para as skills de revisão** (se instaladas): pergunta pontual ou revisão de um
+  arquivo → `auditoria-seguranca` em modo orientação; revisão completa do código →
+  `auditoria-seguranca completo`; ataque por contrato da API → `pentest`; panorama de todos os eixos
+  → `auditoria`. Sem as skills, segue o checklist acima.
 - **Nunca modifica código** — só analisa e reporta.
 
 ## `reviewer`

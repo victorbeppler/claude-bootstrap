@@ -40,6 +40,8 @@ Delegue ao subagente `security`:
 - Sem argumentos: analisar os arquivos críticos (guards, gateways, webhooks, uploads, entrypoint, config).
 - Cobertura: OWASP Top 10 Web, OWASP para aplicações agênticas (se houver), segredos, audit de dependências.
 - Relatório por severidade; ao final, instruir `docs`.
+- Para auditoria profunda (ledger de cobertura + verificador independente), sugerir
+  `/auditoria-seguranca completo` se a skill estiver instalada.
 ```
 
 ## `new-feature.md`

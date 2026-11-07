@@ -4,8 +4,8 @@ Configura o **Claude Code** de ponta a ponta em qualquer codebase com um comando
 
 O Claude analisa o projeto com subagentes em paralelo e gera **CLAUDE.md, AGENTS.md, memory-bank,
 até 11 subagentes especializados e 6 slash commands**, tudo com conteúdo real do projeto (nomes,
-comandos, padrões e caminhos de verdade, sem placeholder). Junto vêm duas skills de revisão:
-**auditoria técnica completa** e **pentest por contrato**.
+comandos, padrões e caminhos de verdade, sem placeholder). Junto vêm três skills de revisão:
+**auditoria técnica completa**, **pentest por contrato** e **auditoria de segurança do código**.
 
 ---
 
@@ -16,6 +16,7 @@ comandos, padrões e caminhos de verdade, sem placeholder). Junto vêm duas skil
 | **bootstrap** | `/bootstrap` | Analisa o repo e gera toda a estrutura de trabalho do Claude Code |
 | **auditoria** | `/auditoria` | Auditoria técnica em 5 eixos (design/smell, auth, bancos, dependências, segurança) com subagentes read-only em paralelo |
 | **pentest** | `/pentest` | Revisão de segurança no método de um pentest externo: inventário de rotas, 8 perguntas por rota e cards prontos para o issue tracker |
+| **auditoria-seguranca** | `/auditoria-seguranca` | Caça a vulnerabilidades no código: ledger de cobertura, caçadores isolados, verificador independente, `findings.json` validado por schema (adaptada da [security-audit-skill da Cloudflare](https://github.com/cloudflare/security-audit-skill)) |
 
 ## Como funciona o `/bootstrap`
 
@@ -184,9 +185,9 @@ Depois do setup:
 > **Custo:** o `/bootstrap` é uma sessão longa e com bastante raciocínio. Ele roda **uma vez por
 > projeto**, e os agentes gerados é que são usados no dia a dia.
 
-## Auditoria e pentest
+## Auditoria, pentest e auditoria de segurança
 
-As duas skills são **read-only**: leem o código, provam cada achado com `arquivo:linha` e
+As três skills são **read-only**: leem o código, provam cada achado com `arquivo:linha` e
 **descrevem** os testes ativos (brute force, IDOR, etc.) como passos para você rodar no seu
 ambiente descartável. Nenhum agente dispara ataque.
 
@@ -197,14 +198,43 @@ flowchart TB
     AU --> B["Bancos<br/>B-xx"]
     AU --> P["Dependências<br/>P-xx"]
     AU --> PT["/pentest<br/>S-xx"]
-    D & A & B & P & PT --> C["Consolidado<br/>severidade · correlação · cobertura declarada"]
+    AU -.->|opcional| AS["/auditoria-seguranca<br/>V-xx"]
+    D & A & B & P & PT & AS --> C["Consolidado<br/>severidade · correlação · cobertura declarada"]
 ```
 
-O princípio das duas: **inventário antes de opinião**. Toda rodada fecha com cobertura declarada
+O princípio das três: **inventário antes de opinião**. Toda rodada fecha com cobertura declarada
 (total / revisado / não coberto), porque revisão feita por tema parece completa e deixa passar
 mais da metade.
 
 > Use só em sistemas seus ou com autorização por escrito do dono.
+
+### `/auditoria-seguranca` em detalhe
+
+Enquanto o `/pentest` bate no **contrato da API**, a `/auditoria-seguranca` desce no **código** e
+procura qualquer fronteira de confiança que ele deixe atravessar, em 11 famílias de classes de
+ataque (web/auth, client-side, IA/LLM, supply chain, cloud, RPC/mensageria, exaustão de recursos,
+isolamento de dados, mobile/desktop, código nativo e a base geral).
+
+```mermaid
+flowchart LR
+    R["1 · Reconhecimento<br/>arquitetura + ledger"] --> H["2 · Caça<br/>caçadores isolados<br/>+ críticos de cobertura"]
+    H --> V["3 · Verificador novo<br/>tenta derrubar"]
+    V --> J["4 · findings.json<br/>validado por schema"]
+    J --> I["5 · Verificação<br/>independente"]
+    I --> RP["6 · RELATORIO.md<br/>+ PRECISA-VALIDACAO.md"]
+```
+
+| Conceito | O que garante |
+|---|---|
+| **Modo orientação** (padrão) | Pergunta pontual de segurança sem criar arquivo nem rodar as 6 fases |
+| **Ledger de cobertura** | Cobertura declarada unidade a unidade, conferida por `scripts/validate-coverage-ledger.cjs` |
+| **Quem acha não valida** | Todo candidato passa por um verificador novo, sem o contexto do caçador |
+| **`confirmed` / `needs_validation` / `rejected`** | Só o confirmado tem severidade; o que depende de fato fora do código vira "precisa de validação" com o passo para você rodar |
+| **Perfis `quick` · `standard` · `deep`** | Mudam amplitude e redundância, nunca a régua de evidência |
+| **Rodadas aditivas** | A próxima rodada lê o ledger anterior e mira nas lacunas |
+
+Saída padrão fora do repositório: `~/auditoria-seguranca/<repo>/run-<N>/`. Os validadores são
+zero-dependência (`node --test skills/auditoria-seguranca/scripts/*.test.cjs`).
 
 ## Estrutura do repositório
 
@@ -225,12 +255,21 @@ claude-bootstrap/
     │   ├── SKILL.md
     │   ├── eixos/                # checklist de cada eixo
     │   └── templates/            # card de achado + consolidado
-    └── pentest/
-        ├── SKILL.md
-        ├── checklist.md          # os 8 padrões (P1–P8)
-        └── templates/            # card, matriz de rotas, relatório
+    ├── pentest/
+    │   ├── SKILL.md
+    │   ├── checklist.md          # os 8 padrões (P1–P8)
+    │   └── templates/            # card, matriz de rotas, relatório
+    └── auditoria-seguranca/
+        ├── SKILL.md              # modos, segurança de execução, perfis, orçamento
+        ├── fases/                # 1 reconhecimento · 2 caça · 3–6 validação e relatório
+        ├── classes/              # base + 10 domínios de classes de ataque
+        ├── referencias/          # glossário PT↔JSON, procedimento de promoção
+        ├── scripts/              # schema + validadores + testes (Node, zero deps)
+        └── LICENSE-cloudflare    # licença MIT da origem
 ```
 
 ## Licença
 
-[MIT](LICENSE)
+[MIT](LICENSE). A skill `auditoria-seguranca` é derivada da
+[security-audit-skill](https://github.com/cloudflare/security-audit-skill) © Cloudflare, Inc., também
+MIT — licença original em [`skills/auditoria-seguranca/LICENSE-cloudflare`](skills/auditoria-seguranca/LICENSE-cloudflare).

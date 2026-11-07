@@ -1,7 +1,7 @@
 ---
 name: auditoria
 description: Auditoria técnica completa de um sistema web/API, ponta a ponta e autônoma — orquestra um subagente read-only por eixo (Design System/Smell Code, Brute Force/Auth, Bancos, Dependências) somado ao pentest por contrato, consolida os achados e entrega um relatório priorizado. Use quando o pedido for "auditar o sistema", "auditoria completa", "revisar tudo antes de entregar ao cliente", "diagnóstico técnico" ou "pentest + qualidade + dependências".
-argument-hint: "[completo | eixo <design-smell|bruteforce-auth|bancos|dependencias|seguranca-contrato> | relatorio]"
+argument-hint: "[completo [+seguranca-codigo] | eixo <design-smell|bruteforce-auth|bancos|dependencias|seguranca-contrato|seguranca-codigo> | relatorio]"
 ---
 
 # Auditoria técnica completa (orquestrador)
@@ -20,6 +20,7 @@ flowchart TB
         B["eixo-bancos<br/>B-xx"]
         P["eixo-dependencias<br/>P-xx"]
         S["pentest<br/>S-xx"]
+        V["auditoria-seguranca<br/>V-xx (opcional)"]
     end
     F2["Fase 2 — Consolidação<br/>(dedup, correlação, severidade)"]
     F3["Fase 3 — Relatório"]
@@ -33,6 +34,7 @@ flowchart TB
 | Bancos | `eixos/bancos.md` | `eixo-bancos` | injection, query dinâmica, IDOR no dado, migrations, segredo, PII |
 | Dependências | `eixos/dependencias.md` | `eixo-dependencias` | CVEs, versão desatualizada, supply chain, lockfile, licença |
 | Segurança por contrato | (reusa a skill `pentest`) | `pentest` | as 8 perguntas por rota, inventário mecânico |
+| Segurança do código (opcional) | (reusa a skill `auditoria-seguranca`) | `auditoria-seguranca` | caça a vulnerabilidades com ledger de cobertura e verificador independente; roda só com `+seguranca-codigo` ou `eixo seguranca-codigo` (é a mais cara) |
 
 Cada achado usa `templates/achado.md`; o consolidado usa `templates/consolidado.md`.
 
@@ -76,7 +78,10 @@ pedido. Cada um roda isolado e read-only. No prompt de cada subagente:
 - proíba segredo na saída e qualquer ação que não seja leitura.
 
 Para o eixo **segurança por contrato**, use a skill `pentest` — não reimplemente as 8 perguntas
-aqui. Se o projeto-alvo tiver agentes de eixo em `.claude/agents/`, delegue por nome; senão, passe
+aqui. Para o eixo opcional **segurança do código**, use a skill `auditoria-seguranca` no modo
+auditoria completa (perfil `quick` por padrão dentro da auditoria, salvo pedido explícito) e
+converta cada `confirmed` do `findings.json` num card `V-xx`; os `needs_validation` entram na
+seção "o que não foi coberto" com o fato que falta, sem severidade. Se o projeto-alvo tiver agentes de eixo em `.claude/agents/`, delegue por nome; senão, passe
 o conteúdo do eixo no prompt.
 
 ## Fase 2 — Consolidação
@@ -89,7 +94,7 @@ Junte os retornos e monte `templates/consolidado.md`:
   *e* política de senha fraca = brute force viável). Diga isso no veredito.
 - **Priorize por severidade** (Crítico / Alto / Médio / Baixo).
 - **IDs por eixo:** `D-01` (design/smell), `A-01` (auth/brute force), `B-01` (bancos), `P-01`
-  (dependências), `S-01` (segurança por contrato).
+  (dependências), `S-01` (segurança por contrato), `V-01` (segurança do código, opcional).
 - Feche com a **tabela de cobertura** somando os eixos. "Não coberto" é informação, não vergonha.
 
 ## Fase 3 — Relatório
@@ -109,6 +114,7 @@ Antes de entregar: nenhum placeholder `<...>` sobrando, nenhum segredo na evidê
 ## Modos
 
 - **`completo`** (padrão): Fase 0 → todos os eixos → consolidação → relatório.
+- **`completo +seguranca-codigo`**: igual, somando o eixo `auditoria-seguranca`.
 - **`eixo <nome>`**: roda só aquele eixo e devolve os cards.
 - **`relatorio`**: pula a varredura, pega os cards já levantados e só monta o relatório.
 

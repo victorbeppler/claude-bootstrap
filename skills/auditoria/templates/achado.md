@@ -1,10 +1,11 @@
 # <ID> — <título curto do achado>
 
 > Um card por achado. ID por eixo: D- (design/smell), A- (auth/brute force), B- (bancos),
-> P- (dependências), S- (segurança por contrato). Severidade: Crítico / Alto / Médio / Baixo.
+> P- (dependências), S- (segurança por contrato), V- (segurança do código). Severidade: Crítico / Alto /
+> Médio / Baixo (o V- pode ter também Informativo).
 
 **Severidade:** <Crítico | Alto | Médio | Baixo>
-**Eixo:** <Design System/Smell Code | Brute Force/Auth | Bancos | Dependências | Segurança por contrato>
+**Eixo:** <Design System/Smell Code | Brute Force/Auth | Bancos | Dependências | Segurança por contrato | Segurança do código>
 **Componente / rota / pacote:** `<arquivo, rota ou pacote@versão>`
 
 ## Descrição

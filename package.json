@@ -1,7 +1,7 @@
 {
   "name": "claude-bootstrap",
-  "version": "1.0.0",
-  "description": "Skills para configurar o Claude Code em qualquer codebase: CLAUDE.md, AGENTS.md, memory-bank, subagentes, slash commands, auditoria técnica e pentest por contrato.",
+  "version": "1.1.0",
+  "description": "Skills para configurar o Claude Code em qualquer codebase: CLAUDE.md, AGENTS.md, memory-bank, subagentes, slash commands, auditoria técnica, pentest por contrato e auditoria de segurança do código.",
   "type": "module",
   "bin": {
     "claude-bootstrap": "bin/init.mjs"
@@ -22,7 +22,9 @@
     "ai-agents",
     "bootstrap",
     "pentest",
-    "security-review"
+    "security-review",
+    "security-audit",
+    "vulnerability-research"
   ],
   "author": "Victor Hugo Beppler",
   "license": "MIT",
@@ -31,6 +33,7 @@
     "url": "git+https://github.com/victorbeppler/claude-bootstrap.git"
   },
   "scripts": {
-    "build:prompt": "node scripts/build-prompt.mjs"
+    "build:prompt": "node scripts/build-prompt.mjs",
+    "test": "node --test skills/auditoria-seguranca/scripts/*.test.cjs"
   }
 }

@@ -23,6 +23,7 @@ Consolidado dos eixos. Um card por achado em `achado.md`.
 | Bancos (B) | | | | | |
 | Dependências (P) | | | | | |
 | Segurança por contrato (S) | | | | | |
+| Segurança do código (V, opcional) | | | | | |
 
 ## Achados (prioridade)
 
@@ -37,6 +38,7 @@ Consolidado dos eixos. Um card por achado em `achado.md`.
 | Frente | Total | Revisado | Não coberto |
 |---|---|---|---|
 | (some as tabelas de cobertura de cada eixo) | | | |
+| Unidades do ledger (`auditoria-seguranca`, se rodou) | | | |
 
 ## O que NÃO foi coberto (e por quê)
 
